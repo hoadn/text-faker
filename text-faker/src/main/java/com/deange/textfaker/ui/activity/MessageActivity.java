@@ -31,9 +31,10 @@ import android.view.MenuItem;
 
 import com.deange.textfaker.R;
 import com.deange.textfaker.content.ContentHelper;
-import com.deange.textfaker.content.OrmLiteLoader;
+import com.deange.textfaker.content.ormlite.OrmLiteLoader;
 import com.deange.textfaker.model.Conversation;
 import com.deange.textfaker.model.ConversationMessage;
+import com.deange.textfaker.utils.Formatter;
 import com.j256.ormlite.stmt.QueryBuilder;
 
 import java.sql.SQLException;
@@ -41,7 +42,8 @@ import java.sql.SQLException;
 public class MessageActivity extends FragmentActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
 	private static final String TAG = MessageActivity.class.getSimpleName();
-	private static final String EXTRA_CONVERSATION_ID = "extra_conversation_id";
+
+	private static final String EXTRA_CONVERSATION_ID = Formatter.makeExtra(TAG, "extra_conversation_id");
 	private static final int LOADER_CONVERSATION_MESSAGES_ID = 0xdeadbeef;
 
 	public static Intent createIntent(final Context context, final Conversation conversation) {

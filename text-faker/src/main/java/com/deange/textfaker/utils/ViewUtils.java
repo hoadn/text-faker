@@ -20,6 +20,9 @@ import android.view.View;
 
 public final class ViewUtils {
 
+	private ViewUtils() {
+	}
+
 	/**
 	 * Convenience method to set visibility using boolean
 	 *
@@ -28,11 +31,6 @@ public final class ViewUtils {
 	 */
 	public static void setVisibility(final View view, final boolean visible) {
 		view.setVisibility((visible ? View.VISIBLE : View.GONE));
-	}
-
-
-	private ViewUtils() {
-
 	}
 
 }

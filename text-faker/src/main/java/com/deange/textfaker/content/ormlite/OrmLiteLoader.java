@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.deange.textfaker.content;
+package com.deange.textfaker.content.ormlite;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.support.v4.content.AsyncTaskLoader;
 
+import com.deange.textfaker.content.ContentHelper;
 import com.deange.textfaker.model.BaseModel;
 import com.j256.ormlite.android.AndroidDatabaseResults;
 import com.j256.ormlite.dao.CloseableIterator;

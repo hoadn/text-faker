@@ -34,6 +34,7 @@ public class ComposeMessageDialog extends PatchedDialogFragment implements Dialo
 
 	private Callback mCallback = Fallback.INSTANCE;
 	private EditText mToPerson;
+	private EditText mToPhoneNumber;
 
 	public static ComposeMessageDialog createInstance() {
 
@@ -48,7 +49,7 @@ public class ComposeMessageDialog extends PatchedDialogFragment implements Dialo
 	}
 
 	public interface Callback {
-		public void composeNewConversationAsked(final String toPerson);
+		public void composeNewConversationAsked(final String toPerson, final String toPhoneNumber);
 	}
 
 	public void setCallback(final Callback callback) {
@@ -65,6 +66,7 @@ public class ComposeMessageDialog extends PatchedDialogFragment implements Dialo
 				null);
 
 		mToPerson = (EditText) view.findViewById(R.id.dialog_compose_new_to);
+		mToPhoneNumber = (EditText) view.findViewById(R.id.dialog_compose_new_phone);
 
 		return new AlertDialog.Builder(getActivity())
 				.setTitle(R.string.compose_message)
@@ -83,7 +85,8 @@ public class ComposeMessageDialog extends PatchedDialogFragment implements Dialo
 		switch (which) {
 			case DialogInterface.BUTTON_POSITIVE:
 				final String toPerson = mToPerson.getText().toString().trim();
-				mCallback.composeNewConversationAsked(toPerson);
+				final String toPhoneNumber = mToPhoneNumber.getText().toString().trim();
+				mCallback.composeNewConversationAsked(toPerson, toPhoneNumber);
 				break;
 			case DialogInterface.BUTTON_NEGATIVE:
 				dismiss();
@@ -96,7 +99,7 @@ public class ComposeMessageDialog extends PatchedDialogFragment implements Dialo
 		private static final Callback INSTANCE = new Fallback();
 
 		@Override
-		public void composeNewConversationAsked(final String toPerson) {
+		public void composeNewConversationAsked(final String toPerson, final String toPhoneNumber) {
 			Log.w(TAG, "Fallback: composeNewConversationAsked()");
 		}
 

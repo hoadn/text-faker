@@ -21,7 +21,8 @@ public class TFBuildConfig {
 	public static final String PACKAGE_PREFIX = "com.deange.textfaker";
 
 	public static final String DATABASE_NAME = "tfapp.db";
-
 	public static final int DATABASE_VERSION = 1;
+
+	public static final String SHARED_PREFS_NAME = "tfapp_settings";
 
 }

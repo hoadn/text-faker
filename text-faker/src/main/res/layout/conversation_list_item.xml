@@ -53,8 +53,7 @@
             android:layout_alignParentTop="true"
             android:layout_toRightOf="@id/from"
             android:textColor="#B0B0B0"
-            android:layout_alignWithParentIfMissing="true"
-            android:text="34" />
+            android:layout_alignWithParentIfMissing="true" />
 
     <TextView
             android:id="@+id/date"
@@ -70,7 +69,7 @@
             android:layout_alignParentBottom="true" />
 
     <TextView
-            android:id="@+id/subject"
+            android:id="@+id/last_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
@@ -81,7 +80,6 @@
             android:layout_toRightOf="@id/avatar"
             android:layout_alignWithParentIfMissing="true"
             android:layout_toLeftOf="@id/date"
-            android:ellipsize="end"
-            android:text="This is a small snippet of text visible in the main screen" />
+            android:ellipsize="end" />
 
 </RelativeLayout>

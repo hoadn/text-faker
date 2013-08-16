@@ -25,7 +25,7 @@ import com.deange.textfaker.model.BaseModel;
 import java.sql.SQLException;
 
 
-public class OrmInsertTask<T extends BaseModel> extends OrmBaseTask<T, Integer> {
+public class OrmInsertTask<T extends BaseModel> extends OrmBaseTask<T, T> {
 
 	protected static final String TAG = OrmInsertTask.class.getSimpleName();
 
@@ -35,7 +35,7 @@ public class OrmInsertTask<T extends BaseModel> extends OrmBaseTask<T, Integer> 
 	final ContentHelper mContent;
 
 	public interface Callback {
-		public void onInsertCompleted(final int rowsInserted);
+		public void onInsertCompleted(final BaseModel model);
 	}
 
 	public OrmInsertTask(final Context context, final Callback callback, final Class<T> clazz) {
@@ -46,27 +46,27 @@ public class OrmInsertTask<T extends BaseModel> extends OrmBaseTask<T, Integer> 
 	}
 
 	@Override
-	protected Integer doInBackground(final T... items) {
+	protected T doInBackground(final T... items) {
 
 		try {
 			int rowsInserted = 0;
-			for (final T item : items) {
-				rowsInserted += mContent.getDao(mClazz).create(item);
-			}
+			final T item = items[0];
 
-			return rowsInserted;
+			mContent.getDao(mClazz).create(item);
+
+			return item;
 
 		} catch (SQLException e) {
 			Log.e(TAG, "Fatal error occurred.");
-			return 0;
+			return null;
 		}
 
 	}
 
 	@Override
-	protected void onPostExecute(final Integer rowsInserted) {
+	protected void onPostExecute(final T model) {
 		if (mCallback != null) {
-			mCallback.onInsertCompleted(rowsInserted);
+			mCallback.onInsertCompleted(model);
 		}
 	}
 

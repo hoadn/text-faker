@@ -19,6 +19,8 @@ package com.deange.textfaker;
 import android.app.Application;
 import android.os.StrictMode;
 
+import com.deange.textfaker.utils.Formatter;
+
 public class TFApplication extends Application {
 
 	@Override
@@ -26,5 +28,10 @@ public class TFApplication extends Application {
 		super.onCreate();
 
 		StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectAll().build());
+
+		Formatter.createInstance(this);
+
+		TFSettings.createInstance(this);
+
 	}
 }

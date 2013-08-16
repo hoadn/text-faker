@@ -17,89 +17,53 @@
 package com.deange.textfaker.model;
 
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 
-import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
-
-import java.io.ByteArrayOutputStream;
 
 @DatabaseTable(tableName = Conversation.TABLE)
 public class Conversation extends BaseModel {
 
 	public static final String TABLE = "conversation";
 	public static final String PERSON = "person";
-	public static final String AVATAR = "avatar";
 	public static final String UPDATED = "updated";
 
-	public static Conversation create(final String person, final long lastUpdated,
-	                                  final Bitmap avatar) {
-		return new Conversation(person, lastUpdated, avatar);
-	}
+	@DatabaseField(columnName = PERSON)
+	private long mPersonId;
 
-	public static Conversation create(final Cursor cursor) {
-		final long id = cursor.getLong(cursor.getColumnIndex(BaseModel.LOCAL_ID));
-		final String person = cursor.getString(cursor.getColumnIndex(PERSON));
-		final long lastUpdated = cursor.getLong(cursor.getColumnIndex(UPDATED));
-		final byte[] avatarBytes = cursor.getBlob(cursor.getColumnIndex(AVATAR));
+	@DatabaseField(columnName = UPDATED)
+	private long mLastUpdated;
 
-		Bitmap bitmap = null;
-		if (avatarBytes != null) {
-			bitmap = BitmapFactory.decodeByteArray(avatarBytes, 0, avatarBytes.length);
-		}
-
-		final Conversation conversation = new Conversation(person, lastUpdated, bitmap);
-		conversation.setId(id);
-
-		return conversation;
-	}
-
-	private Conversation(final String person, final long lastUpdated, final Bitmap avatar) {
-		mPerson = person;
+	private Conversation(final long personId, final long lastUpdated) {
+		mPersonId = personId;
 		mLastUpdated = lastUpdated;
-		setAvatar(avatar);
 	}
 
 	public Conversation() {
 		// Needed by OrmLite
 	}
 
-	@DatabaseField(columnName = PERSON)
-	private String mPerson;
-
-	@DatabaseField(columnName = AVATAR, dataType = DataType.BYTE_ARRAY)
-	private byte[] mAvatarBytes;
-
-	@DatabaseField(columnName = UPDATED)
-	private long mLastUpdated;
-
-	public String getPerson() {
-		return mPerson;
+	public static Conversation createInstance(final long personId, final long lastUpdated) {
+		return new Conversation(personId, lastUpdated);
 	}
 
-	public void setPerson(final String person) {
-		mPerson = person;
+	public static Conversation createInstance(final Cursor cursor) {
+		final long id = cursor.getLong(cursor.getColumnIndex(BaseModel.LOCAL_ID));
+		final long personId = cursor.getLong(cursor.getColumnIndex(PERSON));
+		final long lastUpdated = cursor.getLong(cursor.getColumnIndex(UPDATED));
+
+		final Conversation conversation = new Conversation(personId, lastUpdated);
+		conversation.setId(id);
+
+		return conversation;
 	}
 
-	public Bitmap getAvatar() {
-		if (mAvatarBytes != null) {
-			return BitmapFactory.decodeByteArray(mAvatarBytes, 0, mAvatarBytes.length);
-		} else {
-			return null;
-		}
+	public long getPersonId() {
+		return mPersonId;
 	}
 
-	public void setAvatar(final Bitmap avatar) {
-		if (avatar == null) {
-			mAvatarBytes = null;
-
-		} else {
-			ByteArrayOutputStream stream = new ByteArrayOutputStream();
-			avatar.compress(Bitmap.CompressFormat.PNG, 100, stream);
-			mAvatarBytes = stream.toByteArray();
-		}
+	public void setPersonId(final long personId) {
+		mPersonId = personId;
 	}
 
 	public long getLastUpdated() {

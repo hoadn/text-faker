@@ -18,6 +18,7 @@ package com.deange.textfaker.content;
 
 import com.deange.textfaker.model.Conversation;
 import com.deange.textfaker.model.ConversationMessage;
+import com.deange.textfaker.model.Person;
 
 public class ContentType {
 
@@ -25,7 +26,8 @@ public class ContentType {
 	public static final Class[] MODELS =
 			{
 					ConversationMessage.class,
-					Conversation.class
+					Conversation.class,
+					Person.class,
 			};
 
 }

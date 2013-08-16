@@ -33,13 +33,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
+
 	private static final String TAG = DatabaseHelper.class.getSimpleName();
+
 	private static DatabaseHelper sInstance = null;
-	private static WeakReference<Callback> mCallbackRef = new WeakReference<Callback>(
-			Fallback.INSTANCE);
+	private static WeakReference<Callback> mCallbackRef = new WeakReference<Callback>(Fallback.INSTANCE);
+
 	private final Class<? extends BaseModel>[] mBaseModels;
-	private final Map<Class<? extends BaseModel>, Dao<? extends BaseModel, Long>> mDaos =
-			new HashMap<Class<? extends BaseModel>, Dao<? extends BaseModel, Long>>();
+	private final Map<Class<? extends BaseModel>, Dao<? extends BaseModel, Long>> mDaos = new HashMap<Class<? extends
+			BaseModel>, Dao<? extends BaseModel, Long>>();
 
 	@SuppressWarnings("unchecked")
 	private DatabaseHelper(final Context context, final String name, final int version) {
@@ -61,7 +63,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 
 	@Override
 	public void onCreate(final SQLiteDatabase db, final ConnectionSource connection) {
-		createTables(db, connection);
+		createTables(connection);
 	}
 
 	@Override
@@ -109,17 +111,15 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 		return result;
 	}
 
-	public void createTables(final SQLiteDatabase db, final ConnectionSource cs) {
-		createTables(cs);
-	}
-
-	public void deleteTables(final SQLiteDatabase db, final ConnectionSource cs) {
-		deleteTables(cs);
-	}
-
 	public void createTables(final ConnectionSource cs) {
 		for (final Class<? extends BaseModel> clazz : mBaseModels) {
 			createTable(clazz, cs);
+		}
+	}
+
+	public void clearTables(final ConnectionSource cs) {
+		for (final Class<? extends BaseModel> clazz : mBaseModels) {
+			clearTable(clazz, cs);
 		}
 	}
 
@@ -132,6 +132,14 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	public void createTable(final Class<? extends BaseModel> clazz, final ConnectionSource cs) {
 		try {
 			TableUtils.createTable(cs, clazz);
+		} catch (final java.sql.SQLException e) {
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	public void clearTable(final Class<? extends BaseModel> clazz, final ConnectionSource cs) {
+		try {
+			TableUtils.clearTable(cs, clazz);
 		} catch (final java.sql.SQLException e) {
 			throw new SQLException(e.getMessage());
 		}

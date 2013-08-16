@@ -16,6 +16,9 @@
 
 package com.deange.textfaker.model;
 
+import android.database.Cursor;
+
+import com.deange.textfaker.utils.BooleanConverter;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -28,7 +31,7 @@ public class ConversationMessage extends BaseModel {
 	public static final String TIME_SENT = "time_sent";
 	public static final String TEXT = "text";
 	public static final String SENDER = "sender";
-	public static final String RECEIVER = "receiver";
+	public static final String ISOUTGOING = "is_outgoing";
 
 
 	@DatabaseField(columnName = CONVERSATION_ID)
@@ -40,43 +43,47 @@ public class ConversationMessage extends BaseModel {
 	@DatabaseField(columnName = TEXT)
 	private String mText;
 
-	@DatabaseField(columnName = SENDER)
-	private long mSenderId;
+	@DatabaseField(columnName = ISOUTGOING)
+	private boolean mIsOutgoing;
 
-	@DatabaseField(columnName = RECEIVER)
-	private long mReceiverId;
+	public static ConversationMessage createInstance(final Cursor cursor) {
 
+		final boolean isOutgoing = BooleanConverter.convert(cursor.getInt(cursor.getColumnIndex(ISOUTGOING)));
+		final long conversationId = cursor.getLong(cursor.getColumnIndex(CONVERSATION_ID));
+		final long time = cursor.getLong(cursor.getColumnIndex(TIME_SENT));
+		final String text = cursor.getString(cursor.getColumnIndex(TEXT));
+
+		final ConversationMessage message = new ConversationMessage(conversationId, isOutgoing, text);
+		message.setTime(time);
+
+		return message;
+	}
+
+	public static ConversationMessage createInstance(final long conversationId, final boolean isOutgoing, final String text) {
+		return new ConversationMessage(conversationId, isOutgoing, text);
+	}
+
+	private ConversationMessage(final long conversationId, final boolean isOutgoing, final String text) {
+		mConversationId = conversationId;
+		mText = text;
+		mIsOutgoing = isOutgoing;
+		mTime = System.currentTimeMillis();
+	}
+
+	public ConversationMessage() {
+		// Needed by OrmLite
+	}
 
 	public long getConversationId() {
 		return mConversationId;
 	}
 
-	public void setConversationId(final long conversationId) {
-		mConversationId = conversationId;
-	}
-
-	public long getReceiverId() {
-		return mReceiverId;
-	}
-
-	public void setReceiverId(final long receiverId) {
-		mReceiverId = receiverId;
-	}
-
-	public long getSenderId() {
-		return mSenderId;
-	}
-
-	public void setSenderId(final long senderId) {
-		mSenderId = senderId;
+	public boolean isOutgoing() {
+		return mIsOutgoing;
 	}
 
 	public String getText() {
 		return mText;
-	}
-
-	public void setText(final String text) {
-		mText = text;
 	}
 
 	public long getTime() {
@@ -85,5 +92,9 @@ public class ConversationMessage extends BaseModel {
 
 	public void setTime(final long time) {
 		mTime = time;
+	}
+
+	public void setIsOutgoing(final boolean isOutgoing) {
+		mIsOutgoing = isOutgoing;
 	}
 }

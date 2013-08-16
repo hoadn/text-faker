@@ -33,12 +33,14 @@ import android.widget.Toast;
 
 import com.deange.textfaker.R;
 import com.deange.textfaker.content.ContentHelper;
-import com.deange.textfaker.content.OrmLiteLoader;
 import com.deange.textfaker.content.ormlite.OrmDeleteTask;
 import com.deange.textfaker.content.ormlite.OrmInsertTask;
+import com.deange.textfaker.content.ormlite.OrmLiteLoader;
+import com.deange.textfaker.model.BaseModel;
 import com.deange.textfaker.model.Conversation;
 import com.deange.textfaker.model.ConversationMessage;
-import com.deange.textfaker.ui.ConversationListAdapter;
+import com.deange.textfaker.model.Person;
+import com.deange.textfaker.ui.adapter.ConversationListAdapter;
 import com.deange.textfaker.ui.dialog.ComposeMessageDialog;
 import com.deange.textfaker.ui.dialog.DeleteConversationDialog;
 import com.deange.textfaker.utils.ViewUtils;
@@ -57,7 +59,6 @@ public class ConversationActivity extends FragmentActivity implements LoaderCall
 	private ListView mListView;
 	private ComposeMessageDialog mComposeDialog;
 	private DeleteConversationDialog mDeleteDialog;
-
 	private int LOADER_CONVERSATION_ID = 0xfaceb00c;
 
 	@Override
@@ -126,7 +127,7 @@ public class ConversationActivity extends FragmentActivity implements LoaderCall
 			mAdapter.swapCursor(cursor);
 
 			ViewUtils.setVisibility(findViewById(android.R.id.empty), cursor.getCount() == 0);
-			ViewUtils.setVisibility(findViewById(android.R.id.list),  cursor.getCount() != 0);
+			ViewUtils.setVisibility(findViewById(android.R.id.list), cursor.getCount() != 0);
 		}
 	}
 
@@ -181,11 +182,10 @@ public class ConversationActivity extends FragmentActivity implements LoaderCall
 	}
 
 	@Override
-	public void composeNewConversationAsked(final String toPerson) {
-		final long now = System.currentTimeMillis();
-		final Conversation newConversation = Conversation.create(toPerson, now, null);
-		new OrmInsertTask<Conversation>(this, this, Conversation.class).execute
-				(newConversation);
+	public void composeNewConversationAsked(final String toPerson, final String toPhoneNumber) {
+
+		final Person newPerson = Person.createInstance(toPerson, toPhoneNumber);
+		new OrmInsertTask<Person>(this, this, Person.class).execute(newPerson);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -213,8 +213,15 @@ public class ConversationActivity extends FragmentActivity implements LoaderCall
 	}
 
 	@Override
-	public void onInsertCompleted(final int rowsInserted) {
-		refresh();
+	public void onInsertCompleted(final BaseModel model) {
+		if (model instanceof Person) {
+			final long now = System.currentTimeMillis();
+			final Conversation newConversation = Conversation.createInstance(model.getId(), now);
+			new OrmInsertTask<Conversation>(this, this, Conversation.class).execute(newConversation);
+
+		} else {
+			refresh();
+		}
 	}
 
 	@Override
@@ -227,7 +234,7 @@ public class ConversationActivity extends FragmentActivity implements LoaderCall
 	                        final long id) {
 
 		final Cursor cursor = (Cursor) parent.getItemAtPosition(position);
-		final Conversation conversation = Conversation.create(cursor);
+		final Conversation conversation = Conversation.createInstance(cursor);
 
 		final Intent intent = MessageActivity.createIntent(this, conversation);
 		startActivity(intent);
@@ -238,7 +245,7 @@ public class ConversationActivity extends FragmentActivity implements LoaderCall
 	                               final int position, final long id) {
 
 		final Cursor cursor = (Cursor) parent.getItemAtPosition(position);
-		final Conversation conversation = Conversation.create(cursor);
+		final Conversation conversation = Conversation.createInstance(cursor);
 
 		showDeleteDialog(conversation);
 

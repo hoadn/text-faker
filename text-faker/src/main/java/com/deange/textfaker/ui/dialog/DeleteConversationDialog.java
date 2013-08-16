@@ -57,8 +57,7 @@ public class DeleteConversationDialog extends PatchedDialogFragment implements D
 		return new AlertDialog.Builder(getActivity())
 				.setIcon(R.drawable.ic_action_alerts_and_states_warning)
 				.setTitle(R.string.dialog_delete_conversation_title)
-				.setMessage(getString(R.string.dialog_delete_conversation_message,
-						mConversation.getPerson()))
+				.setMessage(R.string.dialog_delete_conversation_message)
 				.setPositiveButton(android.R.string.ok, this)
 				.setNegativeButton(android.R.string.cancel, this)
 				.create();

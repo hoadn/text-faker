@@ -10,13 +10,15 @@
     <string name="no_conversations">No conversations!</string>
     <string name="compose_message">Compose Message</string>
     <string name="action_settings">Settings</string>
+    <string name="conversation_no_messages"><i>(No Messages)</i></string>
 
     <string name="menu_delete_all">Delete all threads</string>
     <string name="dialog_delete_conversation_title">Delete?</string>
-    <string name="dialog_delete_conversation_message">One conversation with %s will be deleted.</string>
+    <string name="dialog_delete_conversation_message">One conversation will be deleted.</string>
     <string name="delete_conversation_failed">Could not delete this conversation</string>
 
-    <string name="compose_message_to">To</string>
+    <string name="compose_message_to">Name</string>
+    <string name="compose_message_phone">Number</string>
     <string name="message_send">Send</string>
     <string name="message_hint">Type message</string>
     <string name="title_activity_message">Message</string>

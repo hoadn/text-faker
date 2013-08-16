@@ -26,7 +26,7 @@ public abstract class BaseModel {
 	public static final String LOCAL_ID = BaseColumns._ID;
 
 	@DatabaseField(columnName = LOCAL_ID, generatedId = true)
-	long mId;
+	protected long mId;
 
 	public long getId() {
 		return mId;
