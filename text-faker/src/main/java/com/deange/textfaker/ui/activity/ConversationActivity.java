@@ -22,7 +22,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,6 +30,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.deange.datetimepicker.date.DatePickerDialog;
 import com.deange.textfaker.R;
 import com.deange.textfaker.content.ContentHelper;
 import com.deange.textfaker.content.ormlite.OrmDeleteTask;
@@ -45,7 +46,7 @@ import com.deange.textfaker.utils.ViewUtils;
 import com.j256.ormlite.stmt.QueryBuilder;
 
 
-public class ConversationActivity extends FragmentActivity implements LoaderCallbacks<Cursor>,
+public class ConversationActivity extends FragmentActivity implements LoaderManager.LoaderCallbacks<Cursor>,
 		ConversationPersonDialog.Callback, OrmInsertTask.Callback, AdapterView.OnItemClickListener,
 		AdapterView.OnItemLongClickListener, ConfirmDeleteDialog.Callback,
 		OrmDeleteTask.Callback {
@@ -72,6 +73,8 @@ public class ConversationActivity extends FragmentActivity implements LoaderCall
 		mListView.setOnItemLongClickListener(this);
 
 		getSupportLoaderManager().initLoader(LOADER_CONVERSATION_ID, null, this);
+
+		DatePickerDialog.newInstance(null, 2013, 8, 25).show(getFragmentManager(), "lol");
 	}
 
 	private void setupActionBar() {
@@ -93,8 +96,8 @@ public class ConversationActivity extends FragmentActivity implements LoaderCall
 	@Override
 	public Loader<Cursor> onCreateLoader(final int loaderId, final Bundle args) {
 
-		final QueryBuilder<Conversation, Long> queryBuilder = ContentHelper.getInstance(this)
-				.getDao(Conversation.class).queryBuilder();
+		final QueryBuilder<Conversation, Long> queryBuilder = ContentHelper.getInstance(this).getDao(
+				Conversation.class).queryBuilder();
 		// Select all, so no need to set any where() clauses
 		// Just need to sort by most recent to oldest conversations
 		queryBuilder.orderBy(Conversation.UPDATED, false);

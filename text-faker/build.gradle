@@ -6,10 +6,10 @@ buildscript {
         classpath 'com.android.tools.build:gradle:0.5.+'
     }
 }
+
 apply plugin: 'android'
 
 dependencies {
-    compile files('libs/android-support-v4.jar')
     compile files('libs/ormlite-core-4.45.jar')
     compile files('libs/ormlite-android-4.45.jar')
     compile project(':DateTimePicker')
@@ -20,7 +20,7 @@ android {
     buildToolsVersion "18.0.0"
 
     defaultConfig {
-        minSdkVersion 7
+        minSdkVersion 14
         targetSdkVersion 18
     }
 }
