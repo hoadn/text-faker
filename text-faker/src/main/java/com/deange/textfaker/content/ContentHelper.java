@@ -25,6 +25,7 @@ import com.j256.ormlite.android.AndroidCompiledStatement;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.stmt.StatementBuilder.StatementType;
+import com.j256.ormlite.stmt.Where;
 import com.j256.ormlite.support.DatabaseConnection;
 
 import java.sql.SQLException;
@@ -56,9 +57,12 @@ public final class ContentHelper {
 		return mHelper.getDaoEx(clazz);
 	}
 
+	public synchronized <T extends BaseModel> Where<T, Long> getWhere(final Class<T> clazz) {
+		return getDao(clazz).queryBuilder().where();
+	}
+
 	public synchronized <T extends BaseModel> Cursor getCursor(final Class<T> clazz,
-	                                                           final PreparedQuery<T> query)
-			throws SQLException {
+	                                                           final PreparedQuery<T> query) throws SQLException {
 		final DatabaseConnection connection = (DatabaseConnection) mHelper.getConnectionSource();
 		final AndroidCompiledStatement stmt = (AndroidCompiledStatement) query
 				.compile(connection, StatementType.SELECT);

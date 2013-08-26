@@ -21,12 +21,10 @@ import android.util.Log;
 
 import com.deange.textfaker.content.ContentHelper;
 import com.deange.textfaker.model.BaseModel;
-import com.j256.ormlite.stmt.UpdateBuilder;
 
 import java.sql.SQLException;
 
-public class OrmUpdateTask<T extends BaseModel> extends OrmBaseTask<UpdateBuilder<T, Long>,
-		Integer> {
+public class OrmUpdateTask<T extends BaseModel> extends OrmBaseTask<T, Long> {
 
 	protected static final String TAG = OrmUpdateTask.class.getSimpleName();
 
@@ -36,7 +34,7 @@ public class OrmUpdateTask<T extends BaseModel> extends OrmBaseTask<UpdateBuilde
 	final ContentHelper mContent;
 
 	public interface Callback {
-		public void onUpdateCompleted(final int rowsUpdated);
+		public void onUpdateCompleted(final long itemId);
 	}
 
 	public OrmUpdateTask(final Context context, final Callback callback, final Class<T> clazz) {
@@ -47,24 +45,29 @@ public class OrmUpdateTask<T extends BaseModel> extends OrmBaseTask<UpdateBuilde
 	}
 
 	@Override
-	protected Integer doInBackground(final UpdateBuilder<T, Long>... updateBuilder) {
+	protected Long doInBackground(final T... items) {
 
 		try {
-			final UpdateBuilder<T, Long> update = updateBuilder[0];
-			int rowsUpdated = mContent.getDao(mClazz).update(update.prepare());
-			return rowsUpdated;
+			final T item = items[0];
+			int rowsUpdated = mContent.getDao(mClazz).update(item);
+
+			if (rowsUpdated == 0) {
+				return BaseModel.INVALID_LOCAL_ID;
+			} else {
+				return item.getId();
+			}
 
 		} catch (SQLException e) {
 			Log.e(TAG, "Fatal error occurred.");
-			return 0;
+			return BaseModel.INVALID_LOCAL_ID;
 		}
 
 	}
 
 	@Override
-	protected void onPostExecute(final Integer rowsUpdated) {
+	protected void onPostExecute(final Long itemId) {
 		if (mCallback != null) {
-			mCallback.onUpdateCompleted(rowsUpdated);
+			mCallback.onUpdateCompleted(itemId);
 		}
 	}
 

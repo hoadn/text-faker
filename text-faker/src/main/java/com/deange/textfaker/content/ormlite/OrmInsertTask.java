@@ -49,7 +49,6 @@ public class OrmInsertTask<T extends BaseModel> extends OrmBaseTask<T, T> {
 	protected T doInBackground(final T... items) {
 
 		try {
-			int rowsInserted = 0;
 			final T item = items[0];
 
 			mContent.getDao(mClazz).create(item);

@@ -1,1 +1,1 @@
-include ':text-faker'
+include ':text-faker', ':DateTimePicker'
