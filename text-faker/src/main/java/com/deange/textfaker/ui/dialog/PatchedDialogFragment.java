@@ -20,7 +20,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 
-public abstract class PatchedDialogFragment extends DialogFragment {
+public abstract class PatchedDialogFragment<Callback> extends DialogFragment implements Callable<Callback> {
 
 	@Override
 	public void onDestroyView() {

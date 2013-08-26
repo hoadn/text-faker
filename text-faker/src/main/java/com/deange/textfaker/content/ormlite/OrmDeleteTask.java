@@ -25,19 +25,13 @@ import com.j256.ormlite.stmt.DeleteBuilder;
 
 import java.sql.SQLException;
 
-public class OrmDeleteTask<T extends BaseModel> extends OrmBaseTask<DeleteBuilder<T, Long>,
-		Integer> {
+public class OrmDeleteTask<T extends BaseModel> extends OrmBaseTask<Object, Integer> {
 
 	protected static final String TAG = OrmDeleteTask.class.getSimpleName();
-
 	final Callback mCallback;
 	final Context mContext;
 	final Class<T> mClazz;
 	final ContentHelper mContent;
-
-	public interface Callback {
-		public void onDeleteCompleted(final int rowsDeleted);
-	}
 
 	public OrmDeleteTask(final Context context, final Callback callback, final Class<T> clazz) {
 		mContext = context;
@@ -46,19 +40,42 @@ public class OrmDeleteTask<T extends BaseModel> extends OrmBaseTask<DeleteBuilde
 		mContent = ContentHelper.getInstance(mContext);
 	}
 
+	protected Integer delete(final DeleteBuilder<T, Long>... items) throws SQLException {
+		final DeleteBuilder<T, Long> item = items[0];
+		final int rowsDeleted = mContent.getDao(mClazz).delete(item.prepare());
+		return rowsDeleted;
+	}
+
+	protected Integer delete(final T... items) throws SQLException {
+		final T item = items[0];
+		final int rowsDeleted = mContent.getDao(mClazz).delete(item);
+		return rowsDeleted;
+	}
+
 	@Override
-	protected Integer doInBackground(final DeleteBuilder<T, Long>... deleteBuilder) {
+	protected Integer doInBackground(final Object... items) {
+
+		final Object item = items[0];
+		int rowsDeleted = 0;
 
 		try {
-			final DeleteBuilder<T, Long> delete = deleteBuilder[0];
-			final int rowsDeleted = mContent.getDao(mClazz).delete(delete.prepare());
-			return rowsDeleted;
 
-		} catch (SQLException e) {
+			if (item instanceof DeleteBuilder) {
+				rowsDeleted = delete((DeleteBuilder) item);
+
+			} else if (item instanceof BaseModel) {
+				// This is of type <T extends BaseModel>
+				// noinspection unchecked
+				rowsDeleted = delete((T) item);
+			}
+
+		} catch (Exception e) {
 			Log.e(TAG, "Fatal error occurred.");
+			e.printStackTrace();
 			return 0;
 		}
 
+		return rowsDeleted;
 	}
 
 	@Override
@@ -66,6 +83,11 @@ public class OrmDeleteTask<T extends BaseModel> extends OrmBaseTask<DeleteBuilde
 		if (mCallback != null) {
 			mCallback.onDeleteCompleted(rowsDeleted);
 		}
+	}
+
+	public interface Callback {
+
+		public void onDeleteCompleted(final int rowsDeleted);
 	}
 
 }

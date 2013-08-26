@@ -29,7 +29,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.deange.textfaker.R;
 import com.deange.textfaker.content.ContentHelper;
@@ -38,27 +37,23 @@ import com.deange.textfaker.content.ormlite.OrmInsertTask;
 import com.deange.textfaker.content.ormlite.OrmLiteLoader;
 import com.deange.textfaker.model.BaseModel;
 import com.deange.textfaker.model.Conversation;
-import com.deange.textfaker.model.ConversationMessage;
-import com.deange.textfaker.model.Person;
 import com.deange.textfaker.ui.adapter.ConversationListAdapter;
-import com.deange.textfaker.ui.dialog.ComposeMessageDialog;
-import com.deange.textfaker.ui.dialog.DeleteConversationDialog;
+import com.deange.textfaker.ui.dialog.ConfirmDeleteDialog;
+import com.deange.textfaker.ui.dialog.ConversationPersonDialog;
+import com.deange.textfaker.utils.FragmentUtils;
 import com.deange.textfaker.utils.ViewUtils;
-import com.j256.ormlite.stmt.DeleteBuilder;
 import com.j256.ormlite.stmt.QueryBuilder;
-
-import java.sql.SQLException;
 
 
 public class ConversationActivity extends FragmentActivity implements LoaderCallbacks<Cursor>,
-		ComposeMessageDialog.Callback, OrmInsertTask.Callback, AdapterView.OnItemClickListener,
-		AdapterView.OnItemLongClickListener, DeleteConversationDialog.Callback,
+		ConversationPersonDialog.Callback, OrmInsertTask.Callback, AdapterView.OnItemClickListener,
+		AdapterView.OnItemLongClickListener, ConfirmDeleteDialog.Callback,
 		OrmDeleteTask.Callback {
 
 	private ConversationListAdapter mAdapter;
 	private ListView mListView;
-	private ComposeMessageDialog mComposeDialog;
-	private DeleteConversationDialog mDeleteDialog;
+	private ConversationPersonDialog mPersonDialog;
+	private ConfirmDeleteDialog mDeleteDialog;
 	private int LOADER_CONVERSATION_ID = 0xfaceb00c;
 
 	@Override
@@ -89,21 +84,10 @@ public class ConversationActivity extends FragmentActivity implements LoaderCall
 	}
 
 	private void findFragments() {
-		if (mComposeDialog == null) {
-			mComposeDialog = (ComposeMessageDialog) getSupportFragmentManager().findFragmentByTag
-					(ComposeMessageDialog.TAG);
-			if (mComposeDialog != null) {
-				mComposeDialog.setCallback(this);
-			}
-		}
-
-		if (mDeleteDialog == null) {
-			mDeleteDialog = (DeleteConversationDialog) getSupportFragmentManager().findFragmentByTag
-					(DeleteConversationDialog.TAG);
-			if (mDeleteDialog != null) {
-				mDeleteDialog.setCallback(this);
-			}
-		}
+		FragmentUtils.findDialogFragment(mPersonDialog, getSupportFragmentManager(), this,
+				ConversationPersonDialog.TAG);
+		FragmentUtils.findDialogFragment(mDeleteDialog, getSupportFragmentManager(), this,
+				ConfirmDeleteDialog.TAG);
 	}
 
 	@Override
@@ -144,27 +128,23 @@ public class ConversationActivity extends FragmentActivity implements LoaderCall
 
 	@Override
 	public boolean onOptionsItemSelected(final MenuItem item) {
-		if (item.getItemId() == R.id.action_compose_new) {
-			showComposeDialog();
+
+		switch(item.getItemId()) {
+			case R.id.action_compose_new:
+				showComposeDialog();
+				break;
+			case R.id.action_delete_all:
+				showDeleteDialog(BaseModel.INVALID_LOCAL_ID, R.string.dialog_delete_all_conversations);
 		}
 
 		return super.onOptionsItemSelected(item);
 	}
 
 	private void showComposeDialog() {
-
-		final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-		if (mComposeDialog != null) {
-			transaction.remove(mComposeDialog);
-		}
-
-		// Create and show the dialog.
-		mComposeDialog = ComposeMessageDialog.createInstance();
-		mComposeDialog.setCallback(this);
-		mComposeDialog.show(transaction, ComposeMessageDialog.TAG);
+		ConversationPersonDialog.show(mPersonDialog, this, getSupportFragmentManager(), null, null);
 	}
 
-	private void showDeleteDialog(final Conversation conversation) {
+	private void showDeleteDialog(final long conversationId, final int messageResId) {
 
 		final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 		if (mDeleteDialog != null) {
@@ -172,9 +152,10 @@ public class ConversationActivity extends FragmentActivity implements LoaderCall
 		}
 
 		// Create and show the dialog.
-		mDeleteDialog = DeleteConversationDialog.createInstance(conversation);
+		mDeleteDialog = ConfirmDeleteDialog.createInstance(Conversation.class, conversationId,
+				getString(messageResId));
 		mDeleteDialog.setCallback(this);
-		mDeleteDialog.show(transaction, DeleteConversationDialog.TAG);
+		mDeleteDialog.show(transaction, ConfirmDeleteDialog.TAG);
 	}
 
 	private void refresh() {
@@ -182,46 +163,26 @@ public class ConversationActivity extends FragmentActivity implements LoaderCall
 	}
 
 	@Override
-	public void composeNewConversationAsked(final String toPerson, final String toPhoneNumber) {
-
-		final Person newPerson = Person.createInstance(toPerson, toPhoneNumber);
-		new OrmInsertTask<Person>(this, this, Person.class).execute(newPerson);
+	public void onConversationPersonEditAsked(final String toPerson, final String toPhoneNumber) {
+		final long now = System.currentTimeMillis();
+		final Conversation newConversation = Conversation.createInstance(toPerson, toPhoneNumber, now);
+		new OrmInsertTask<Conversation>(this, this, Conversation.class).execute(newConversation);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public void deleteConversationAsked(final Conversation conversation) {
+	public void onDeleteItemAsked(final Class clazz, final long itemId) {
 
-		try {
-			final DeleteBuilder<ConversationMessage, Long> deleteMessages = ContentHelper
-					.getInstance(this)
-					.getDao(ConversationMessage.class).deleteBuilder();
-			deleteMessages.where().eq(ConversationMessage.CONVERSATION_ID, conversation.getId());
-			new OrmDeleteTask<ConversationMessage>(this, this, ConversationMessage.class).execute
-					(deleteMessages);
+		if (itemId == BaseModel.INVALID_LOCAL_ID) {
+			ConfirmDeleteDialog.deleteAllConversations(this, this);
 
-			final DeleteBuilder<Conversation, Long> deleteConversation = ContentHelper.getInstance
-					(this)
-					.getDao(Conversation.class).deleteBuilder();
-			deleteConversation.where().idEq(conversation.getId());
-			new OrmDeleteTask<Conversation>(this, this, Conversation.class).execute
-					(deleteConversation);
-
-		} catch (SQLException e) {
-			Toast.makeText(this, R.string.delete_conversation_failed, Toast.LENGTH_SHORT).show();
+		} else {
+			ConfirmDeleteDialog.deleteConversation(this, itemId);
 		}
 	}
 
 	@Override
 	public void onInsertCompleted(final BaseModel model) {
-		if (model instanceof Person) {
-			final long now = System.currentTimeMillis();
-			final Conversation newConversation = Conversation.createInstance(model.getId(), now);
-			new OrmInsertTask<Conversation>(this, this, Conversation.class).execute(newConversation);
-
-		} else {
-			refresh();
-		}
+		refresh();
 	}
 
 	@Override
@@ -231,7 +192,7 @@ public class ConversationActivity extends FragmentActivity implements LoaderCall
 
 	@Override
 	public void onItemClick(final AdapterView<?> parent, final View view, final int position,
-	                        final long id) {
+			final long id) {
 
 		final Cursor cursor = (Cursor) parent.getItemAtPosition(position);
 		final Conversation conversation = Conversation.createInstance(cursor);
@@ -242,12 +203,12 @@ public class ConversationActivity extends FragmentActivity implements LoaderCall
 
 	@Override
 	public boolean onItemLongClick(final AdapterView<?> parent, final View view,
-	                               final int position, final long id) {
+			final int position, final long id) {
 
 		final Cursor cursor = (Cursor) parent.getItemAtPosition(position);
 		final Conversation conversation = Conversation.createInstance(cursor);
 
-		showDeleteDialog(conversation);
+		showDeleteDialog(conversation.getId(), R.string.dialog_delete_conversation_message);
 
 		return true;
 	}

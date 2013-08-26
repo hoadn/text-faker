@@ -31,7 +31,5 @@ public class TFApplication extends Application {
 
 		Formatter.createInstance(this);
 
-		TFSettings.createInstance(this);
-
 	}
 }

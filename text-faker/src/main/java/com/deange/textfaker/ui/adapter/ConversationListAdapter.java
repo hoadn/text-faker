@@ -30,14 +30,13 @@ import com.deange.textfaker.R;
 import com.deange.textfaker.content.ContentHelper;
 import com.deange.textfaker.model.Conversation;
 import com.deange.textfaker.model.ConversationMessage;
-import com.deange.textfaker.model.Person;
 import com.deange.textfaker.utils.Formatter;
 import com.j256.ormlite.stmt.QueryBuilder;
 
 import java.lang.ref.WeakReference;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class ConversationListAdapter extends CursorAdapter {
@@ -62,67 +61,15 @@ public class ConversationListAdapter extends CursorAdapter {
 		final TextView countView = (TextView) view.findViewById(R.id.count);
 		final QuickContactBadge avatarView = (QuickContactBadge) view.findViewById(R.id.avatar);
 
-		avatarView.setImageToDefault();
-
-		new ConversationResourcePopulater(avatarView, toPersonView).execute(conversation);
 		new ConversationMessagePopulater(messageView, countView).execute(conversation);
 
-		final Calendar now = Calendar.getInstance();
-		final Calendar then = Calendar.getInstance();
-		then.setTimeInMillis(conversation.getLastUpdated());
+		final Date lastUpdated = new Date(conversation.getLastUpdated());
+		final String formattedDate = Formatter.formatMessageDate(lastUpdated);
 
-		if (now.get(Calendar.YEAR) != then.get(Calendar.YEAR)) {
-			updatedView.setText(Formatter.formatLongDate(then.getTime()));
+		updatedView.setText(formattedDate);
+		toPersonView.setText(conversation.getName());
+		avatarView.setImageToDefault();
 
-		} else if (now.get(Calendar.DAY_OF_YEAR) != then.get(Calendar.DAY_OF_YEAR)) {
-			updatedView.setText(Formatter.formatMediumDate(then.getTime()));
-
-		} else {
-			updatedView.setText(Formatter.formatTime(then.getTime()));
-		}
-
-	}
-
-	private class ConversationResourcePopulater extends AsyncTask<Conversation, Void, Person> {
-
-		final WeakReference<TextView> mNameView;
-		final WeakReference<QuickContactBadge> mAvatarView;
-
-		ConversationResourcePopulater(final QuickContactBadge avatarView, final TextView nameView) {
-			mNameView = new WeakReference<TextView>(nameView);
-			mAvatarView = new WeakReference<QuickContactBadge>(avatarView);
-		}
-
-		@Override
-		protected Person doInBackground(final Conversation... conversations) {
-
-			final long personId = conversations[0].getPersonId();
-			Person person = null;
-
-			try {
-				QueryBuilder<Person, Long> queryBuilder = ContentHelper.getInstance(mContext).getDao(Person.class)
-						.queryBuilder();
-				queryBuilder.where().idEq(personId);
-				person = queryBuilder.queryForFirst();
-
-			} catch (SQLException e) {
-
-			}
-
-			return person;
-		}
-
-		@Override
-		protected void onPostExecute(final Person person) {
-			if (person != null) {
-				if ((mAvatarView.get() != null) && (person.getAvatar() != null)) {
-					mAvatarView.get().setImageBitmap(person.getAvatar());
-				}
-				if (mNameView.get() != null) {
-					mNameView.get().setText(person.getName());
-				}
-			}
-		}
 	}
 
 	private class ConversationMessagePopulater extends AsyncTask<Conversation, Void, List<ConversationMessage>> {
@@ -145,10 +92,10 @@ public class ConversationListAdapter extends CursorAdapter {
 				final QueryBuilder<ConversationMessage, Long> queryBuilder = ContentHelper.getInstance(mContext).getDao
 						(ConversationMessage.class).queryBuilder();
 				queryBuilder.where().eq(ConversationMessage.CONVERSATION_ID, conversationId);
-				queryBuilder.orderBy(ConversationMessage.TIME_SENT, true);
+				queryBuilder.orderBy(ConversationMessage.TIME_SENT, false);
 				messages = queryBuilder.query();
 
-			} catch (SQLException e) {
+			} catch (SQLException ignored) {
 
 			}
 

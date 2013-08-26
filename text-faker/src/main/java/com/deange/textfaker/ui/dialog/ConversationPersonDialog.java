@@ -20,6 +20,8 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,29 +29,41 @@ import android.widget.EditText;
 
 import com.deange.textfaker.R;
 
-public class ComposeMessageDialog extends PatchedDialogFragment implements DialogInterface
-		.OnClickListener {
+public class ConversationPersonDialog extends PatchedDialogFragment<ConversationPersonDialog.Callback> implements
+		DialogInterface.OnClickListener {
 
-	public static final String TAG = ComposeMessageDialog.class.getSimpleName();
-
+	public static final String TAG = ConversationPersonDialog.class.getSimpleName();
 	private Callback mCallback = Fallback.INSTANCE;
 	private EditText mToPerson;
 	private EditText mToPhoneNumber;
+	private String mPersonName;
+	private String mPhoneNumber;
 
-	public static ComposeMessageDialog createInstance() {
+	public ConversationPersonDialog(final String personName, final String phoneNumber) {
+		mPersonName = personName;
+		mPhoneNumber = phoneNumber;
+	}
 
-		final ComposeMessageDialog dialog = new ComposeMessageDialog();
+	public static void show(ConversationPersonDialog dialog, final Callback callback, final FragmentManager manager,
+	                        final String personName, final String phoneNumber) {
+		Log.v(TAG, "show()");
 
+		final FragmentTransaction transaction = manager.beginTransaction();
+		if (dialog != null) {
+			transaction.remove(dialog);
+		}
+
+		dialog = ConversationPersonDialog.createInstance(personName, phoneNumber);
+		dialog.setCallback(callback);
+		dialog.show(transaction, ConversationPersonDialog.TAG);
+	}
+
+	public static ConversationPersonDialog createInstance(final String personName, final String phoneNumber) {
+		Log.v(TAG, "createInstance()");
+
+		final ConversationPersonDialog dialog = new ConversationPersonDialog(personName, phoneNumber);
+		dialog.setRetainInstance(true);
 		return dialog;
-
-	}
-
-	public ComposeMessageDialog() {
-		//Needed by Android
-	}
-
-	public interface Callback {
-		public void composeNewConversationAsked(final String toPerson, final String toPhoneNumber);
 	}
 
 	public void setCallback(final Callback callback) {
@@ -62,11 +76,13 @@ public class ComposeMessageDialog extends PatchedDialogFragment implements Dialo
 	public Dialog onCreateDialog(final Bundle savedInstanceState) {
 		Log.v(TAG, "onCreateDialog()");
 
-		final View view = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_compose_new,
-				null);
+		final View view = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_compose_new, null);
 
 		mToPerson = (EditText) view.findViewById(R.id.dialog_compose_new_to);
 		mToPhoneNumber = (EditText) view.findViewById(R.id.dialog_compose_new_phone);
+
+		mToPerson.setText(mPersonName);
+		mToPhoneNumber.setText(mPhoneNumber);
 
 		return new AlertDialog.Builder(getActivity())
 				.setTitle(R.string.compose_message)
@@ -77,6 +93,13 @@ public class ComposeMessageDialog extends PatchedDialogFragment implements Dialo
 
 	}
 
+	@Override
+	public void onSaveInstanceState(final Bundle outState) {
+		super.onSaveInstanceState(outState);
+
+		mPersonName = mToPerson.getText().toString();
+		mPhoneNumber = mToPhoneNumber.getText().toString();
+	}
 
 	@Override
 	public void onClick(final DialogInterface dialog, final int which) {
@@ -86,7 +109,7 @@ public class ComposeMessageDialog extends PatchedDialogFragment implements Dialo
 			case DialogInterface.BUTTON_POSITIVE:
 				final String toPerson = mToPerson.getText().toString().trim();
 				final String toPhoneNumber = mToPhoneNumber.getText().toString().trim();
-				mCallback.composeNewConversationAsked(toPerson, toPhoneNumber);
+				mCallback.onConversationPersonEditAsked(toPerson, toPhoneNumber);
 				break;
 			case DialogInterface.BUTTON_NEGATIVE:
 				dismiss();
@@ -95,12 +118,17 @@ public class ComposeMessageDialog extends PatchedDialogFragment implements Dialo
 
 	}
 
+
+	public interface Callback {
+		public void onConversationPersonEditAsked(final String toPerson, final String toPhoneNumber);
+	}
+
 	private static final class Fallback implements Callback {
 		private static final Callback INSTANCE = new Fallback();
 
 		@Override
-		public void composeNewConversationAsked(final String toPerson, final String toPhoneNumber) {
-			Log.w(TAG, "Fallback: composeNewConversationAsked()");
+		public void onConversationPersonEditAsked(final String toPerson, final String toPhoneNumber) {
+			Log.w(TAG, "Fallback: onConversationPersonEditAsked()");
 		}
 
 	}

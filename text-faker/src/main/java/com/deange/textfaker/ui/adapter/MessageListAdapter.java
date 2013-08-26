@@ -16,39 +16,42 @@
 
 package com.deange.textfaker.ui.adapter;
 
+import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.support.v4.widget.CursorAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.deange.textfaker.R;
 import com.deange.textfaker.model.ConversationMessage;
+import com.deange.textfaker.ui.layout.QuickContactDivot;
+import com.deange.textfaker.utils.BooleanConverter;
+import com.deange.textfaker.utils.Formatter;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class MessageListAdapter extends CursorAdapter {
 
-	private final DateFormat mTimeFormatter;
-	private final DateFormat mDateFormatter;
-	private final DateFormat mYearFormatter;
+	private static final int TOTAL_VIEW_COUNT = 2;
 
-	public MessageListAdapter(final Context context) {
+	private View.OnLongClickListener mLongPressListener;
+
+	public MessageListAdapter(final Activity context, final View.OnLongClickListener longPressListnener) {
 		super(context, null, false);
-
-		mTimeFormatter = android.text.format.DateFormat.getTimeFormat(context);
-		mYearFormatter = android.text.format.DateFormat.getMediumDateFormat(context);
-		mDateFormatter = new SimpleDateFormat("MMM yy");
-
+		mLongPressListener = longPressListnener;
 	}
 
 	@Override
 	public View newView(final Context context, final Cursor cursor, final ViewGroup viewGroup) {
 
-		View view = null;
-		if (cursor.getInt(cursor.getColumnIndex(ConversationMessage.ISOUTGOING)) > 0) {
+		final ConversationMessage message = ConversationMessage.createInstance(cursor);
+		final boolean isOutgoing = message.isOutgoing();
+
+		View view;
+		if (isOutgoing) {
 			// Outgoing message
 			view = LayoutInflater.from(context).inflate(R.layout.message_list_item_send, null);
 
@@ -61,11 +64,29 @@ public class MessageListAdapter extends CursorAdapter {
 	}
 
 	@Override
-	public void bindView(final View view, final Context context, final Cursor cursor) {
+	public int getItemViewType(final int position) {
+		final ConversationMessage message = ConversationMessage.createInstance((Cursor) getItem(position));
+		return BooleanConverter.convert(message.isOutgoing());
+	}
 
-		//final ConversationMessage message = ConversationMessage.createInstance(cursor);
+	@Override
+	public int getViewTypeCount() {
+		return TOTAL_VIEW_COUNT;
+	}
 
+	@Override
+	public void bindView(View view, final Context context, final Cursor cursor) {
 
+		view.setFocusableInTouchMode(false);
+		view.setOnLongClickListener(mLongPressListener);
+		((Activity) mContext).registerForContextMenu(view);
 
+		final ConversationMessage message = ConversationMessage.createInstance(cursor);
+		final String formattedDate = Formatter.formatMessageDate(new Date(message.getTime()));
+
+		((TextView) view.findViewById(R.id.text_view)).setText(message.getText());
+		((TextView) view.findViewById(R.id.date_view)).setText(formattedDate);
+
+		((QuickContactDivot) view.findViewById(R.id.avatar)).setImageToDefault();
 	}
 }

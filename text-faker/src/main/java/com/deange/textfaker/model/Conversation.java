@@ -18,6 +18,7 @@ package com.deange.textfaker.model;
 
 import android.database.Cursor;
 
+import com.deange.textfaker.utils.Formatter;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -25,17 +26,23 @@ import com.j256.ormlite.table.DatabaseTable;
 public class Conversation extends BaseModel {
 
 	public static final String TABLE = "conversation";
-	public static final String PERSON = "person";
-	public static final String UPDATED = "updated";
 
-	@DatabaseField(columnName = PERSON)
-	private long mPersonId;
+	public static final String UPDATED = "updated";
+	public static final String NAME = "name";
+	public static final String PHONENUMBER = "phone_number";
 
 	@DatabaseField(columnName = UPDATED)
 	private long mLastUpdated;
 
-	private Conversation(final long personId, final long lastUpdated) {
-		mPersonId = personId;
+	@DatabaseField(columnName = NAME)
+	private String mName;
+
+	@DatabaseField(columnName = PHONENUMBER)
+	private String mPhoneNumber;
+
+	private Conversation(final String personName, final String phoneNumber, final long lastUpdated) {
+		mName = personName;
+		mPhoneNumber = Formatter.formatPhoneNumber(phoneNumber);
 		mLastUpdated = lastUpdated;
 	}
 
@@ -43,27 +50,36 @@ public class Conversation extends BaseModel {
 		// Needed by OrmLite
 	}
 
-	public static Conversation createInstance(final long personId, final long lastUpdated) {
-		return new Conversation(personId, lastUpdated);
+	public static Conversation createInstance(final String personName, final String phoneNumber, final long lastUpdated) {
+		return new Conversation(personName, phoneNumber, lastUpdated);
 	}
 
 	public static Conversation createInstance(final Cursor cursor) {
 		final long id = cursor.getLong(cursor.getColumnIndex(BaseModel.LOCAL_ID));
-		final long personId = cursor.getLong(cursor.getColumnIndex(PERSON));
 		final long lastUpdated = cursor.getLong(cursor.getColumnIndex(UPDATED));
+		final String personName = cursor.getString(cursor.getColumnIndex(NAME));
+		final String phoneNumber = cursor.getString(cursor.getColumnIndex(PHONENUMBER));
 
-		final Conversation conversation = new Conversation(personId, lastUpdated);
+		final Conversation conversation = new Conversation(personName, phoneNumber, lastUpdated);
 		conversation.setId(id);
 
 		return conversation;
 	}
 
-	public long getPersonId() {
-		return mPersonId;
+	public String getName() {
+		return mName;
 	}
 
-	public void setPersonId(final long personId) {
-		mPersonId = personId;
+	public void setName(final String name) {
+		mName = name;
+	}
+
+	public String getNumber() {
+		return mPhoneNumber;
+	}
+
+	public void setNumber(final String number) {
+		mPhoneNumber = Formatter.formatPhoneNumber(number);
 	}
 
 	public long getLastUpdated() {
