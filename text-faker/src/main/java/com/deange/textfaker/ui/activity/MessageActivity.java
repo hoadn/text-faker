@@ -265,6 +265,7 @@ public class MessageActivity extends FragmentActivity implements LoaderManager.L
 		if (itemIndex != AdapterView.INVALID_POSITION) {
 			mLongPressedMessage = ConversationMessage.createInstance((Cursor) mAdapter.getItem(itemIndex));
 			getMenuInflater().inflate(R.menu.message_context_menu, menu);
+			menu.setHeaderTitle(R.string.menu_header_title);
 		}
 
 	}

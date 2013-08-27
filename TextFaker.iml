@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module external.linked.project.path="$MODULE_DIR$/TextFaker" external.system.id="GRADLE" type="JAVA_MODULE" version="4">
+<module external.linked.project.path="$MODULE_DIR$" external.system.id="GRADLE" type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
@@ -8,6 +8,7 @@
     </content>
     <orderEntry type="jdk" jdkName="Android 4.3" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="gen" level="project" />
   </component>
 </module>
 

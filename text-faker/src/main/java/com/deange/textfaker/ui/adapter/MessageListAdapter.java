@@ -19,6 +19,7 @@ package com.deange.textfaker.ui.adapter;
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.support.v4.widget.CursorAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -77,7 +78,6 @@ public class MessageListAdapter extends CursorAdapter {
 	@Override
 	public void bindView(View view, final Context context, final Cursor cursor) {
 
-		view.setFocusableInTouchMode(false);
 		view.setOnLongClickListener(mLongPressListener);
 		((Activity) mContext).registerForContextMenu(view);
 

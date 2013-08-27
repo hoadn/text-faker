@@ -30,7 +30,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.deange.datetimepicker.date.DatePickerDialog;
 import com.deange.textfaker.R;
 import com.deange.textfaker.content.ContentHelper;
 import com.deange.textfaker.content.ormlite.OrmDeleteTask;
@@ -73,8 +72,6 @@ public class ConversationActivity extends FragmentActivity implements LoaderMana
 		mListView.setOnItemLongClickListener(this);
 
 		getSupportLoaderManager().initLoader(LOADER_CONVERSATION_ID, null, this);
-
-		DatePickerDialog.newInstance(null, 2013, 8, 25).show(getFragmentManager(), "lol");
 	}
 
 	private void setupActionBar() {

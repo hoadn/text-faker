@@ -53,6 +53,7 @@
     <string name="message_hint">Type message</string>
     <string name="title_activity_message">Message</string>
 
+    <string name="menu_header_title">Message options</string>
     <string name="menu_copy_text">Copy Text</string>
     <string name="menu_edit_message">Edit Message</string>
     <string name="menu_delete_message">Delete</string>
