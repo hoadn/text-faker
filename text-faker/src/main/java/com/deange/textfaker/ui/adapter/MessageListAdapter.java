@@ -19,7 +19,6 @@ package com.deange.textfaker.ui.adapter;
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.support.v4.widget.CursorAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -48,7 +47,7 @@ public class MessageListAdapter extends CursorAdapter {
 	@Override
 	public View newView(final Context context, final Cursor cursor, final ViewGroup viewGroup) {
 
-		final ConversationMessage message = ConversationMessage.createInstance(cursor);
+		final ConversationMessage message = new ConversationMessage(cursor);
 		final boolean isOutgoing = message.isOutgoing();
 
 		View view;
@@ -66,7 +65,7 @@ public class MessageListAdapter extends CursorAdapter {
 
 	@Override
 	public int getItemViewType(final int position) {
-		final ConversationMessage message = ConversationMessage.createInstance((Cursor) getItem(position));
+		final ConversationMessage message = new ConversationMessage((Cursor) getItem(position));
 		return BooleanConverter.convert(message.isOutgoing());
 	}
 
@@ -81,7 +80,7 @@ public class MessageListAdapter extends CursorAdapter {
 		view.setOnLongClickListener(mLongPressListener);
 		((Activity) mContext).registerForContextMenu(view);
 
-		final ConversationMessage message = ConversationMessage.createInstance(cursor);
+		final ConversationMessage message = new ConversationMessage(cursor);
 		final String formattedDate = Formatter.formatMessageDate(new Date(message.getTime()));
 
 		((TextView) view.findViewById(R.id.text_view)).setText(message.getText());

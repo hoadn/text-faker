@@ -20,6 +20,7 @@ import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager;
@@ -49,17 +50,20 @@ import com.deange.textfaker.model.ConversationMessage;
 import com.deange.textfaker.ui.adapter.MessageListAdapter;
 import com.deange.textfaker.ui.dialog.ConfirmDeleteDialog;
 import com.deange.textfaker.ui.dialog.ConversationPersonDialog;
+import com.deange.textfaker.ui.dialog.EditMessageDialog;
 import com.deange.textfaker.ui.dialog.MessageSenderDialog;
 import com.deange.textfaker.utils.Formatter;
 import com.deange.textfaker.utils.FragmentUtils;
 import com.j256.ormlite.stmt.QueryBuilder;
 
 import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
 
 public class MessageActivity extends FragmentActivity implements LoaderManager.LoaderCallbacks<Cursor>, TextWatcher,
 		ConfirmDeleteDialog.Callback, View.OnClickListener, View.OnLongClickListener,
 		MessageSenderDialog.Callback, OrmInsertTask.Callback,
-		ConversationPersonDialog.Callback, OrmUpdateTask.Callback, OrmDeleteTask.Callback {
+		ConversationPersonDialog.Callback, OrmUpdateTask.Callback, OrmDeleteTask.Callback, EditMessageDialog.Callback {
 
 	private static final String TAG = MessageActivity.class.getSimpleName();
 	private static final String EXTRA_CONVERSATION_ID = Formatter.makeExtra(TAG, "extra_conversation_id");
@@ -71,6 +75,7 @@ public class MessageActivity extends FragmentActivity implements LoaderManager.L
 	private MessageListAdapter mAdapter;
 	private Conversation mConversation;
 	private ConversationMessage mLongPressedMessage;
+	private EditMessageDialog mEditMessageDialog;
 	private ConversationPersonDialog mPersonDialog;
 	private MessageSenderDialog mMessageDialog;
 	private ConfirmDeleteDialog mDeleteDialog;
@@ -122,11 +127,12 @@ public class MessageActivity extends FragmentActivity implements LoaderManager.L
 	}
 
 	private void findFragments() {
-		FragmentUtils.findDialogFragment(mPersonDialog, getSupportFragmentManager(), this,
-				ConversationPersonDialog.TAG);
+		FragmentUtils.findDialogFragment(mEditMessageDialog, getSupportFragmentManager(), this, EditMessageDialog.TAG);
 		FragmentUtils.findDialogFragment(mMessageDialog, getSupportFragmentManager(), this, MessageSenderDialog.TAG);
 		FragmentUtils.findDialogFragment(mDeleteDialog, getSupportFragmentManager(), this,
 				ConfirmDeleteDialog.TAG);
+		FragmentUtils.findDialogFragment(mPersonDialog, getSupportFragmentManager(), this,
+				ConversationPersonDialog.TAG);
 	}
 
 	@Override
@@ -196,7 +202,7 @@ public class MessageActivity extends FragmentActivity implements LoaderManager.L
 			mAdapter.swapCursor(cursor);
 
 		} else if (loaderId == LOADER_CONVERSATION_ID) {
-			mConversation = Conversation.createInstance(cursor);
+			mConversation = new Conversation(cursor);
 			setupActionBar();
 		}
 	}
@@ -224,6 +230,14 @@ public class MessageActivity extends FragmentActivity implements LoaderManager.L
 	private void showChangePersonDialog() {
 		ConversationPersonDialog.show(mPersonDialog, this, getSupportFragmentManager(), mConversation.getName(),
 				mConversation.getNumber());
+	}
+
+	private void showEditMessageDialog() {
+		EditMessageDialog.show(mEditMessageDialog, this, getSupportFragmentManager(), mLongPressedMessage);
+	}
+
+	private void setConversationLastUpdatedToNow() {
+		new UpdateConversationTask(this, mConversation).execute();
 	}
 
 	void updateSmsButtonState(final String text) {
@@ -254,7 +268,11 @@ public class MessageActivity extends FragmentActivity implements LoaderManager.L
 	public void onClick(final View v) {
 		Log.v(TAG, "onClick()");
 
-		showChooseSenderDialog();
+		switch(v.getId()) {
+			case R.id.send_button_sms:
+				showChooseSenderDialog();
+				break;
+		}
 	}
 
 	@Override
@@ -263,7 +281,7 @@ public class MessageActivity extends FragmentActivity implements LoaderManager.L
 		final int itemIndex = mListView.getPositionForView(v);
 
 		if (itemIndex != AdapterView.INVALID_POSITION) {
-			mLongPressedMessage = ConversationMessage.createInstance((Cursor) mAdapter.getItem(itemIndex));
+			mLongPressedMessage = new ConversationMessage((Cursor) mAdapter.getItem(itemIndex));
 			getMenuInflater().inflate(R.menu.message_context_menu, menu);
 			menu.setHeaderTitle(R.string.menu_header_title);
 		}
@@ -278,6 +296,7 @@ public class MessageActivity extends FragmentActivity implements LoaderManager.L
 				Formatter.copyToClipboard(this, mLongPressedMessage.getText());
 				break;
 			case R.id.action_edit_message:
+				showEditMessageDialog();
 				break;
 			case R.id.action_delete:
 				showDeleteDialog(ConversationMessage.class, mLongPressedMessage.getId(),
@@ -290,8 +309,7 @@ public class MessageActivity extends FragmentActivity implements LoaderManager.L
 
 	@Override
 	public boolean onLongClick(final View v) {
-		v.showContextMenu();
-		return true;
+		return v.showContextMenu();
 	}
 
 	@Override
@@ -323,30 +341,77 @@ public class MessageActivity extends FragmentActivity implements LoaderManager.L
 		final boolean isOutgoing = (messageSender == MessageSenderDialog.Sender.YOURSELF);
 		final String messageText = mMessageEditView.getText().toString().trim();
 
-		final ConversationMessage message = ConversationMessage.createInstance(mConversation.getId(), isOutgoing,
-				messageText);
+		final ConversationMessage message = new ConversationMessage(mConversation.getId(), isOutgoing, messageText);
 
 		new OrmInsertTask<ConversationMessage>(this, this, ConversationMessage.class).execute(message);
 	}
 
 	@Override
+	public void onMessageUpdateAsked(final Date newDate, final String newMessage) {
+
+		mLongPressedMessage.setTime(newDate.getTime());
+		mLongPressedMessage.setText(newMessage);
+
+		new OrmUpdateTask<ConversationMessage>(this, this, ConversationMessage.class).execute(mLongPressedMessage);
+	}
+
+	@Override
 	public void onInsertCompleted(final BaseModel model) {
 
-		mConversation.setLastUpdated(System.currentTimeMillis());
-		OrmUpdateTask<Conversation> updateTask = new OrmUpdateTask<Conversation>(this, null, Conversation.class);
-		updateTask.execute(mConversation);
+		setConversationLastUpdatedToNow();
 
 		mMessageEditView.setText("");
 		refresh();
 	}
 
 	@Override
-	public void onUpdateCompleted(final long itemId) {
-		setupActionBar();
+	public void onUpdateCompleted(final Class clazz, final long itemId) {
+		if (clazz == Conversation.class) {
+			setupActionBar();
+
+		} else if (clazz == ConversationMessage.class) {
+			setConversationLastUpdatedToNow();
+			refresh();
+		}
 	}
 
 	@Override
 	public void onDeleteCompleted(final int rowsDeleted) {
 		refresh();
+	}
+
+	private class UpdateConversationTask extends AsyncTask<Void, Void, Void> {
+
+		private Context mContext;
+		private Conversation mConversation;
+
+		public UpdateConversationTask(final Context context, final Conversation conversation) {
+			mContext = context;
+			mConversation = conversation;
+		}
+
+		@Override
+		protected Void doInBackground(final Void... voids) {
+
+			final ContentHelper content = ContentHelper.getInstance(mContext);
+
+			try {
+				final QueryBuilder<ConversationMessage, Long> query = content.getDao(ConversationMessage.class)
+						.queryBuilder();
+				query.where().eq(ConversationMessage.CONVERSATION_ID, mConversation.getId());
+				query.orderBy(ConversationMessage.TIME_SENT, false);
+
+				final List<ConversationMessage> messages = query.query();
+				if (messages != null) {
+					final long lastMessageTime = messages.get(0).getTime();
+					mConversation.setLastUpdated(lastMessageTime);
+					content.getDao(Conversation.class).update(mConversation);
+				}
+
+			} catch (final SQLException ignored) {
+			}
+
+			return null;
+		}
 	}
 }

@@ -26,7 +26,6 @@ import com.j256.ormlite.table.DatabaseTable;
 public class Conversation extends BaseModel {
 
 	public static final String TABLE = "conversation";
-
 	public static final String UPDATED = "updated";
 	public static final String NAME = "name";
 	public static final String PHONENUMBER = "phone_number";
@@ -35,13 +34,20 @@ public class Conversation extends BaseModel {
 	private long mLastUpdated;
 
 	@DatabaseField(columnName = NAME)
-	private String mName;
+	private String mPersonName;
 
 	@DatabaseField(columnName = PHONENUMBER)
 	private String mPhoneNumber;
 
-	private Conversation(final String personName, final String phoneNumber, final long lastUpdated) {
-		mName = personName;
+	public Conversation(final Cursor cursor) {
+		mId = cursor.getLong(cursor.getColumnIndex(BaseModel.LOCAL_ID));
+		mPersonName = cursor.getString(cursor.getColumnIndex(NAME));
+		mPhoneNumber = cursor.getString(cursor.getColumnIndex(PHONENUMBER));
+		mLastUpdated = cursor.getLong(cursor.getColumnIndex(UPDATED));
+	}
+
+	public Conversation(final String personName, final String phoneNumber, final long lastUpdated) {
+		mPersonName = personName;
 		mPhoneNumber = Formatter.formatPhoneNumber(phoneNumber);
 		mLastUpdated = lastUpdated;
 	}
@@ -50,40 +56,24 @@ public class Conversation extends BaseModel {
 		// Needed by OrmLite
 	}
 
-	public static Conversation createInstance(final String personName, final String phoneNumber, final long lastUpdated) {
-		return new Conversation(personName, phoneNumber, lastUpdated);
-	}
-
-	public static Conversation createInstance(final Cursor cursor) {
-		final long id = cursor.getLong(cursor.getColumnIndex(BaseModel.LOCAL_ID));
-		final long lastUpdated = cursor.getLong(cursor.getColumnIndex(UPDATED));
-		final String personName = cursor.getString(cursor.getColumnIndex(NAME));
-		final String phoneNumber = cursor.getString(cursor.getColumnIndex(PHONENUMBER));
-
-		final Conversation conversation = new Conversation(personName, phoneNumber, lastUpdated);
-		conversation.setId(id);
-
-		return conversation;
-	}
-
 	public String getName() {
-		return mName;
-	}
-
-	public void setName(final String name) {
-		mName = name;
+		return mPersonName;
 	}
 
 	public String getNumber() {
 		return mPhoneNumber;
 	}
 
-	public void setNumber(final String number) {
-		mPhoneNumber = Formatter.formatPhoneNumber(number);
-	}
-
 	public long getLastUpdated() {
 		return mLastUpdated;
+	}
+
+	public void setName(final String name) {
+		mPersonName = name;
+	}
+
+	public void setNumber(final String number) {
+		mPhoneNumber = Formatter.formatPhoneNumber(number);
 	}
 
 	public void setLastUpdated(final long lastUpdated) {

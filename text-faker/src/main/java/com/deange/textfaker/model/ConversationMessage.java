@@ -30,7 +30,6 @@ public class ConversationMessage extends BaseModel {
 
 	public static final String TIME_SENT = "time_sent";
 	public static final String TEXT = "text";
-	public static final String SENDER = "sender";
 	public static final String ISOUTGOING = "is_outgoing";
 
 
@@ -46,27 +45,18 @@ public class ConversationMessage extends BaseModel {
 	@DatabaseField(columnName = ISOUTGOING)
 	private boolean mIsOutgoing;
 
-	public static ConversationMessage createInstance(final Cursor cursor) {
-
-		final boolean isOutgoing = BooleanConverter.convert(cursor.getInt(cursor.getColumnIndex(ISOUTGOING)));
-		final long conversationId = cursor.getLong(cursor.getColumnIndex(CONVERSATION_ID));
-		final long time = cursor.getLong(cursor.getColumnIndex(TIME_SENT));
-		final String text = cursor.getString(cursor.getColumnIndex(TEXT));
-
-		final ConversationMessage message = new ConversationMessage(conversationId, isOutgoing, text);
-		message.setTime(time);
-
-		return message;
+	public ConversationMessage(final Cursor cursor) {
+		mIsOutgoing = BooleanConverter.convert(cursor.getInt(cursor.getColumnIndex(ISOUTGOING)));
+		mConversationId = cursor.getLong(cursor.getColumnIndex(CONVERSATION_ID));
+		mTime = cursor.getLong(cursor.getColumnIndex(TIME_SENT));
+		mText = cursor.getString(cursor.getColumnIndex(TEXT));
+		mId = cursor.getLong(cursor.getColumnIndex(LOCAL_ID));
 	}
 
-	public static ConversationMessage createInstance(final long conversationId, final boolean isOutgoing, final String text) {
-		return new ConversationMessage(conversationId, isOutgoing, text);
-	}
-
-	private ConversationMessage(final long conversationId, final boolean isOutgoing, final String text) {
+	public ConversationMessage(final long conversationId, final boolean isOutgoing, final String text) {
 		mConversationId = conversationId;
-		mText = text;
 		mIsOutgoing = isOutgoing;
+		mText = text;
 		mTime = System.currentTimeMillis();
 	}
 
@@ -94,7 +84,7 @@ public class ConversationMessage extends BaseModel {
 		mTime = time;
 	}
 
-	public void setIsOutgoing(final boolean isOutgoing) {
-		mIsOutgoing = isOutgoing;
+	public void setText(final String text) {
+		mText = text;
 	}
 }

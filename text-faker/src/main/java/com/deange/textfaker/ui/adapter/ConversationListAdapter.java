@@ -53,7 +53,7 @@ public class ConversationListAdapter extends CursorAdapter {
 	@Override
 	public void bindView(final View view, final Context context, final Cursor cursor) {
 
-		final Conversation conversation = Conversation.createInstance(cursor);
+		final Conversation conversation = new Conversation(cursor);
 
 		final TextView toPersonView = (TextView) view.findViewById(R.id.from);
 		final TextView updatedView = (TextView) view.findViewById(R.id.date);

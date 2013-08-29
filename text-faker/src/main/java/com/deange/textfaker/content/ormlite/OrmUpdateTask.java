@@ -34,7 +34,7 @@ public class OrmUpdateTask<T extends BaseModel> extends OrmBaseTask<T, Long> {
 	final ContentHelper mContent;
 
 	public interface Callback {
-		public void onUpdateCompleted(final long itemId);
+		public void onUpdateCompleted(final Class clazz, final long itemId);
 	}
 
 	public OrmUpdateTask(final Context context, final Callback callback, final Class<T> clazz) {
@@ -48,6 +48,7 @@ public class OrmUpdateTask<T extends BaseModel> extends OrmBaseTask<T, Long> {
 	protected Long doInBackground(final T... items) {
 
 		try {
+
 			final T item = items[0];
 			int rowsUpdated = mContent.getDao(mClazz).update(item);
 
@@ -67,7 +68,7 @@ public class OrmUpdateTask<T extends BaseModel> extends OrmBaseTask<T, Long> {
 	@Override
 	protected void onPostExecute(final Long itemId) {
 		if (mCallback != null) {
-			mCallback.onUpdateCompleted(itemId);
+			mCallback.onUpdateCompleted(mClazz, itemId);
 		}
 	}
 

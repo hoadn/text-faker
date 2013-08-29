@@ -121,7 +121,7 @@ public class Formatter {
 	public static void copyToClipboard(final Context context, final String text) {
 
 		final Object clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE);
-		if (Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.HONEYCOMB) {
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
 			((android.text.ClipboardManager) clipboard).setText(text);
 
 		} else {

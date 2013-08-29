@@ -70,7 +70,11 @@ public class ConversationActivity extends FragmentActivity implements LoaderMana
 
 		mListView.setOnItemClickListener(this);
 		mListView.setOnItemLongClickListener(this);
+	}
 
+	@Override
+	protected void onResume() {
+		super.onResume();
 		getSupportLoaderManager().initLoader(LOADER_CONVERSATION_ID, null, this);
 	}
 
@@ -165,7 +169,7 @@ public class ConversationActivity extends FragmentActivity implements LoaderMana
 	@Override
 	public void onConversationPersonEditAsked(final String toPerson, final String toPhoneNumber) {
 		final long now = System.currentTimeMillis();
-		final Conversation newConversation = Conversation.createInstance(toPerson, toPhoneNumber, now);
+		final Conversation newConversation = new Conversation(toPerson, toPhoneNumber, now);
 		new OrmInsertTask<Conversation>(this, this, Conversation.class).execute(newConversation);
 	}
 
@@ -195,7 +199,7 @@ public class ConversationActivity extends FragmentActivity implements LoaderMana
 			final long id) {
 
 		final Cursor cursor = (Cursor) parent.getItemAtPosition(position);
-		final Conversation conversation = Conversation.createInstance(cursor);
+		final Conversation conversation = new Conversation(cursor);
 
 		final Intent intent = MessageActivity.createIntent(this, conversation);
 		startActivity(intent);
@@ -206,7 +210,7 @@ public class ConversationActivity extends FragmentActivity implements LoaderMana
 			final int position, final long id) {
 
 		final Cursor cursor = (Cursor) parent.getItemAtPosition(position);
-		final Conversation conversation = Conversation.createInstance(cursor);
+		final Conversation conversation = new Conversation(cursor);
 
 		showDeleteDialog(conversation.getId(), R.string.dialog_delete_conversation_message);
 

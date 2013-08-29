@@ -40,14 +40,12 @@ public class OrmDeleteTask<T extends BaseModel> extends OrmBaseTask<Object, Inte
 		mContent = ContentHelper.getInstance(mContext);
 	}
 
-	protected Integer delete(final DeleteBuilder<T, Long>... items) throws SQLException {
-		final DeleteBuilder<T, Long> item = items[0];
-		final int rowsDeleted = mContent.getDao(mClazz).delete(item.prepare());
+	protected Integer delete(final DeleteBuilder<T, Long> deleteBuilder) throws SQLException {
+		final int rowsDeleted = mContent.getDao(mClazz).delete(deleteBuilder.prepare());
 		return rowsDeleted;
 	}
 
-	protected Integer delete(final T... items) throws SQLException {
-		final T item = items[0];
+	protected Integer delete(final T item) throws SQLException {
 		final int rowsDeleted = mContent.getDao(mClazz).delete(item);
 		return rowsDeleted;
 	}
@@ -61,7 +59,7 @@ public class OrmDeleteTask<T extends BaseModel> extends OrmBaseTask<Object, Inte
 		try {
 
 			if (item instanceof DeleteBuilder) {
-				rowsDeleted = delete((DeleteBuilder) item);
+				rowsDeleted = delete((DeleteBuilder<T, Long>) item);
 
 			} else if (item instanceof BaseModel) {
 				// This is of type <T extends BaseModel>
